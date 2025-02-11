@@ -34,7 +34,7 @@ public static class AdjustHostVotingPower
             // By fetching the total required votes like this, it'll be compatible with any mods that modify the required amount of votes
             totalVotesNeeded = int.Parse(hudManager.holdButtonToEndGameEarlyVotesText.text.Split("/")[1].Split(" ")[0]);
             // totalVotesNeeded = startOfRound.connectedPlayersAmount + 1 - startOfRound.livingPlayers; // this only works for vanilla
-            
+
             if (Config.usePercentageOfTotalVotesRequired.Value)
             {
                 // When doing value / 100, it does not work
@@ -59,10 +59,13 @@ public static class AdjustHostVotingPower
 
             if (self.votesForShipToLeaveEarly >= totalVotesNeeded)
             {
-                self.votesForShipToLeaveEarly = totalVotesNeeded;
-                self.SetShipLeaveEarlyClientRpc(self.normalizedTimeOfDay + 0.1f, self.votesForShipToLeaveEarly);
+                if (Config.limitCustomVotes.Value)
+                {
+                    self.votesForShipToLeaveEarly = totalVotesNeeded;
+                    CustomHostVotingPower.Logger.LogDebug($"Amount of votes was set to the total required amount because the threshold has been reached");
+                }
 
-                CustomHostVotingPower.Logger.LogDebug($"Amount of votes was set to the total required amount because the threshold has been reached");
+                self.SetShipLeaveEarlyClientRpc(self.normalizedTimeOfDay + 0.1f, self.votesForShipToLeaveEarly);
             }
             else
             {
