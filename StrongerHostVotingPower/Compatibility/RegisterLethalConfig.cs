@@ -13,7 +13,7 @@ public static class RegisterLethalConfig
 
         BoolCheckBoxConfigItem booluseCustom = new(Configuration.Config.useCustomVotingPower, requiresRestart: false);
         BoolCheckBoxConfigItem boolusePercentage = new(Configuration.Config.usePercentageOfTotalVotesRequired, requiresRestart: false);
-        BoolCheckBoxConfigItem boolLimitCustomVotes = new(Configuration.Config.usePercentageOfTotalVotesRequired, requiresRestart: false);
+        BoolCheckBoxConfigItem boolLimitCustomVotes = new(Configuration.Config.limitCustomVotes, requiresRestart: false);
         IntInputFieldConfigItem intItem = new(Configuration.Config.customVotingPower, requiresRestart: false);
         IntSliderConfigItem intSliderItem = new(Configuration.Config.customVotingPowerPercentage, requiresRestart: false);
 
