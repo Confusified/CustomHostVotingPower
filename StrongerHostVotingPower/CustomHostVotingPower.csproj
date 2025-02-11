@@ -2,8 +2,8 @@
 
     <!-- BepInEx Properties -->
     <PropertyGroup>
-        <AssemblyName>StrongerHostVotingPower</AssemblyName>
-        <Product>Increase_Host_Voting_Power</Product>
+        <AssemblyName>CustomHostVotingPower.Confusified.com.GitHub</AssemblyName>
+        <Product>Custom Host Voting Power</Product>
         <!-- Change to whatever version you're currently on. -->
         <Version>1.0.0</Version>
     </PropertyGroup>
@@ -11,7 +11,7 @@
     <!-- Project Properties -->
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <RootNamespace>StrongerHostVotingPower</RootNamespace>
+        <RootNamespace>CustomHostVotingPower</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
@@ -53,5 +53,12 @@
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <!-- Custom Added Assemblies -->
+    <ItemGroup>
+        <Reference Include="LethalConfig">
+            <HintPath>$(AssembliesDirectory)LethalConfig\LethalConfig.dll</HintPath>
+        </Reference>
     </ItemGroup>
 </Project>

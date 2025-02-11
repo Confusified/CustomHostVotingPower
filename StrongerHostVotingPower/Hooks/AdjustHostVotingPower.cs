@@ -1,22 +1,21 @@
 using System;
-using ES3Types;
-using GameNetcodeStuff;
+using CustomHostVotingPower.Configuration;
+using TMPro;
 
-namespace StrongerHostVotingPower.Hooks;
+namespace CustomHostVotingPower.Hooks;
 
-static class AdjustHostVotingPower
+public static class AdjustHostVotingPower
 {
-    // TO DO: Make these a config
-    public static bool useCustomVotingPower = true;
-    public static float customVotePercentile = 500;
-    public static int customVoteInt = 0;
+    private static int customVoteInt = 0;
 
     private static bool hostCalledVote = false;
     private static int totalVotesNeeded = 0;
 
+    public static HUDManager hudManager = null!;
 
     public static void CheckForHostVote(Action<TimeOfDay> orig, TimeOfDay self)
     {
+        // Only bother checking if the host has not voted before
         if (!self.votedShipToLeaveEarlyThisRound)
         {
             hostCalledVote = self.NetworkManager.IsHost;
@@ -28,41 +27,62 @@ static class AdjustHostVotingPower
     public static void UpdateHostVotingPower(Action<TimeOfDay> orig, TimeOfDay self)
     {
         // This is always ran by the host, so checking to see if they're a host in this method would not work
-        StrongerHostVotingPower.Logger.LogDebug($"host called vote: {hostCalledVote}");
-        if (useCustomVotingPower && hostCalledVote)
+        CustomHostVotingPower.Logger.LogDebug($"host called vote: {hostCalledVote}");
+        if (Config.useCustomVotingPower.Value && hostCalledVote)
         {
             StartOfRound startOfRound = StartOfRound.Instance;
-            totalVotesNeeded = startOfRound.connectedPlayersAmount + 1 - startOfRound.livingPlayers; // total votes needed
-            float voteSmallPercentile = customVotePercentile / 100;
-            customVoteInt = (int)MathF.Round(totalVotesNeeded * voteSmallPercentile);
+            // By fetching the total required votes like this, it'll be compatible with any mods that modify the required amount of votes
+            totalVotesNeeded = int.Parse(hudManager.holdButtonToEndGameEarlyVotesText.text.Split("/")[1].Split(" ")[0]);
+            // totalVotesNeeded = startOfRound.connectedPlayersAmount + 1 - startOfRound.livingPlayers; // this only works for vanilla
+            
+            if (Config.usePercentageOfTotalVotesRequired.Value)
+            {
+                // When doing value / 100, it does not work
+                float voteSmallPercentile = Config.customVotingPowerPercentage.Value * (float)0.01;
+                customVoteInt = (int)MathF.Round(totalVotesNeeded * voteSmallPercentile);
+            }
+            else
+            {
+                customVoteInt = Config.customVotingPower.Value;
+            }
+
             // Set the vote count to 1 because having 0 or less votes is not intended
-            if (customVoteInt <= 0) 
+            if (customVoteInt <= 0)
             {
                 customVoteInt = 0;
                 customVoteInt++;
             }
-            
-            self.votesForShipToLeaveEarly += customVoteInt;
-            StrongerHostVotingPower.Logger.LogDebug($"Increased votes by {customVoteInt} through mod");
-            // Possible: Never go over the limit of votes instead match it perfectly if the voting power is bigger than the needed votes
 
-            if (self.votesForShipToLeaveEarly >= totalVotesNeeded + 99)
+            self.votesForShipToLeaveEarly += customVoteInt;
+
+            CustomHostVotingPower.Logger.LogDebug($"Increased votes with {customVoteInt}");
+
+            if (self.votesForShipToLeaveEarly >= totalVotesNeeded)
             {
+                self.votesForShipToLeaveEarly = totalVotesNeeded;
                 self.SetShipLeaveEarlyClientRpc(self.normalizedTimeOfDay + 0.1f, self.votesForShipToLeaveEarly);
+
+                CustomHostVotingPower.Logger.LogDebug($"Amount of votes was set to the total required amount because the threshold has been reached");
             }
             else
             {
+                // This updates the UI of other clients to reflect the amount of votes correctly, otherwise there will be a desync in the UI elements
                 for (int i = 0; i < customVoteInt; i++)
                 {
                     self.AddVoteForShipToLeaveEarlyClientRpc();
 
                 }
             }
-            // self.votedShipToLeaveEarlyThisRound = true;
         }
         else
         {
             orig(self);
         }
+    }
+
+    public static void GetHUDManager(Action<HUDManager> orig, HUDManager self)
+    {
+        orig(self);
+        hudManager = self;
     }
 }
