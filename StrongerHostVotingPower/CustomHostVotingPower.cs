@@ -6,7 +6,6 @@ using MonoMod.RuntimeDetour;
 using HarmonyLib;
 using BepInEx.Configuration;
 using BepInEx.Bootstrap;
-using Discord;
 
 namespace CustomHostVotingPower;
 
